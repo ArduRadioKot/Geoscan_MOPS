@@ -1,1 +1,2 @@
-def proccess_metashape()
+def proccess_metashape():
+    pass
