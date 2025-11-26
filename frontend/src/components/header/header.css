@@ -36,20 +36,12 @@
   height: 1px;
   background: linear-gradient(90deg, 
     transparent 0%, 
-    rgba(118, 90, 255, 0.4) 50%, 
+    rgba(245, 49, 1, 0.4) 50%, 
     transparent 100%);
 }
 
 /* Эффект жидкого стекла при наведении */
-.header:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(118, 90, 255, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 
-    0 12px 40px rgba(118, 90, 255, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-}
+
 
 .header__content {
   display: flex;
@@ -96,7 +88,7 @@
 
 .slider {
   /* Градиент вместо плоского цвета */
-  background: linear-gradient(135deg, #765AFF 0%, #9d8aff 100%);
+  background: linear-gradient(135deg, #FE3101 0%, #fd5f3b 100%);
   position: absolute;
   cursor: pointer;
   top: 0;

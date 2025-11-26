@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './header.css'
+import logo from '../../assets/logo.png'
 
 export default function Header({ name }) {
     const getInitialTheme = () => {
@@ -29,21 +30,10 @@ export default function Header({ name }) {
         <div className="header">
 
             <div className="header__content">
-                {/* <img 
+                <img 
   src={logo} 
   alt="Logo" 
-  className="header__logo"
-  style={{ 
-    width: '32px',
-    height: '32px',
-    filter: 'invert(24%) sepia(89%) saturate(2584%) hue-rotate(243deg) brightness(95%) contrast(101%)',
-    // Для мобильных
-    '@media (max-width: 768px)': {
-      width: '24px',
-      height: '24px'
-    }
-  }}
-/> */}
+/>
                 <h1 className="header__title">{name}</h1>
 
                 {/* <label htmlFor="theme-switch" className="switch">

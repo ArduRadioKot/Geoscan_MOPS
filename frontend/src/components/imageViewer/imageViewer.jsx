@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import './imageViewer.css';
+import logo from '../../assets/logo.png'
 
 const ImageViewer = ({ image }) => {
   const [scale, setScale] = useState(1);
