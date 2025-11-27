@@ -33,6 +33,8 @@ const ImageViewer = ({ image }) => {
   const handleMouseMove = useCallback((e) => {
     if (!isDragging || scale <= 1) return;
 
+    e.preventDefault(); 
+
     const newX = e.clientX - dragStart.x;
     const newY = e.clientY - dragStart.y;
 
