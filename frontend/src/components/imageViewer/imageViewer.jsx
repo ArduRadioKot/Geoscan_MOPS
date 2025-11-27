@@ -1,7 +1,7 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import './imageViewer.css';
 
-const ImageViewer = ({ image }) => {
+const ImageViewer = ({ imageSrc }) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -68,10 +68,18 @@ const ImageViewer = ({ image }) => {
     setPosition({ x: 0, y: 0 });
   };
 
-  // Если изображение не загружено, не рендерим компонент
-  if (!image) return null;
+  useEffect(() => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  }, [imageSrc]);
 
-  const imageUrl = URL.createObjectURL(image);
+  if (!imageSrc) {
+    return (
+      <div className="image-viewer image-viewer--empty">
+        <p>Результат AI пока не загружен</p>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -84,7 +92,7 @@ const ImageViewer = ({ image }) => {
       <div className="image-viewer__container" ref={containerRef}>
         <img
           ref={imageRef}
-          src={imageUrl}
+          src={imageSrc}
           alt="Просмотр"
           className="image-viewer__img"
           style={{

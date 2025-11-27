@@ -171,6 +171,21 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+.sidebar__link--button {
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sidebar__link--button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .sidebar__icon {
   width: 20px;
   height: 20px;

@@ -4,6 +4,7 @@ import shutil
 from typing import List, Dict, Any, Optional
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from fly import fly_start
@@ -13,6 +14,14 @@ from ai import process_image
 TMP_ROOT = "tmp"
 
 app = FastAPI(title=" backend")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ================== ВСПОМОГАТЕЛЬНЫЕ ШТУКИ ДЛЯ СЕССИЙ ==================
 

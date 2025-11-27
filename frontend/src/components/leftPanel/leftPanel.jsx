@@ -1,10 +1,9 @@
 import './leftPanel.css'
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Sidebar = ({ onImageUpload, onClearImage }) => {
+const Sidebar = ({ onFetchAiImage, onStartFlight, onClearImage, isLoading }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const fileInputRef = useRef(null);
 
   const toggleSidebar = () => {
     if (!isOpen) {
@@ -16,21 +15,23 @@ const Sidebar = ({ onImageUpload, onClearImage }) => {
     }
   };
 
+  const handleStartFlight = async () => {
+    if (typeof onStartFlight === 'function') {
+      await onStartFlight();
+    }
+    closeSidebar();
+  };
+
   const closeSidebar = () => {
     setIsOpen(false);
     setTimeout(() => setIsVisible(false), 300);
   };
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      onImageUpload(file);
-      closeSidebar();
+  const handleRequestAiImage = async () => {
+    if (typeof onFetchAiImage === 'function') {
+      await onFetchAiImage();
     }
-  };
-
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
+    closeSidebar();
   };
 
   const handleClearClick = () => {
@@ -87,24 +88,25 @@ const Sidebar = ({ onImageUpload, onClearImage }) => {
           <nav className="sidebar__nav">
             <ul className="sidebar__menu">
               <li className="sidebar__item">
-                <a href="#home" className="sidebar__link" onClick={closeSidebar}>
+                <button 
+                  className="sidebar__link sidebar__link--button" 
+                  onClick={handleStartFlight}
+                  disabled={isLoading}
+                >
                   <span className="sidebar__icon"></span>
-                  <span className="sidebar__text">Главная</span>
-                </a>
+                  <span className="sidebar__text">Старт полёта</span>
+                </button>
               </li>
             </ul>
           </nav>
 
           <div className="image-upload">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept="image/*"
-              style={{ display: 'none' }}
-            />
-            <button className="upload-btn" onClick={handleUploadClick}>
-              Загрузить изображение
+            <button 
+              className="upload-btn" 
+              onClick={handleRequestAiImage}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Загружаем…' : 'Загрузить изображение'}
             </button>
             <button className="clear-btn" onClick={handleClearClick}>
               Очистить изображение

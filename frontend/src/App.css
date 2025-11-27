@@ -32,6 +32,35 @@ body {
   min-height: 100vh;
 }
 
+.app-status-panel {
+  position: absolute;
+  top: 90px;
+  right: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 110;
+}
+
+.app-status {
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #111;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.app-status--error {
+  background: rgba(255, 87, 87, 0.9);
+  color: #fff;
+}
+
+.app-status--info {
+  background: rgba(82, 217, 125, 0.9);
+  color: #0b2a18;
+}
+
 /* Liquid Glass эффекты */
 .liquid-glass {
   background: rgba(255, 255, 255, 0.1);
