@@ -7,9 +7,9 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from fly import fly_start
+from fly import fly_start, DroneConnectionError
 from grabber import grab_images
-from ai import process_image
+from ai import process_image, process_ai_image
 
 TMP_ROOT = "tmp"
 
@@ -17,10 +17,16 @@ app = FastAPI(title=" backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # ================== ВСПОМОГАТЕЛЬНЫЕ ШТУКИ ДЛЯ СЕССИЙ ==================
@@ -93,6 +99,9 @@ def _list_images(folder: str) -> List[str]:
     """
     patterns = ("*.jpg", "*.jpeg", "*.png", "*.tif", "*.tiff", "*.bmp")
     files: List[str] = []
+
+
+    
     for p in patterns:
         files.extend(glob.glob(os.path.join(folder, p)))
     return sorted(files)
@@ -215,7 +224,18 @@ def process_ai_for_session(session_id: int) -> str:
     output_path = os.path.join(ai_dir, f"{name}_ai{ext}")
 
     # Зовём нашу функцию из ai.py
-    result_path = process_image(input_path, output_path)
+    try:
+        result_path = process_ai_image(input_path, output_path)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Модель AI недоступна: {str(exc)}",
+        ) from exc
+    except Exception as exc:  # pylint: disable=broad-except
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка обработки AI: {str(exc)}",
+        ) from exc
 
     return result_path
 
@@ -284,8 +304,16 @@ def start_fly() -> Dict[str, Any]:
     """
     session_id = _create_session()
 
-    fly_start()
-    grab_images()
+    try:
+        fly_start()
+        grab_images()
+    except DroneConnectionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except Exception as exc:  # pylint: disable=broad-except
+        raise HTTPException(
+            status_code=500,
+            detail="Не удалось запустить полёт или получить данные",
+        ) from exc
 
     paths = _get_paths(session_id)
     return {
@@ -337,6 +365,118 @@ def run_ai_endpoint(
     _require_metashape_not_empty(session_id)
 
     result_path = process_ai_for_session(session_id)
+
+    if not os.path.isfile(result_path):
+        raise HTTPException(
+            status_code=500,
+            detail="AI не вернул результирующее изображение",
+        )
+
+    return FileResponse(
+        result_path,
+        media_type="image/jpeg",
+        filename=os.path.basename(result_path),
+    )
+
+
+@app.post("/data/upload-and-process-metashape")
+async def upload_and_process_metashape(
+    files: List[UploadFile] = File(..., description="Список изображений для обработки Metashape"),
+    session_id: Optional[int] = Query(
+        default=None,
+        description="ID сессии (если не передан — создаётся новая)",
+    ),
+) -> FileResponse:
+    """
+    Загружает папку с фотографиями и автоматически запускает обработку Metashape.
+    Возвращает результат обработки.
+    """
+    if not files:
+        raise HTTPException(
+            status_code=400,
+            detail="Нужно загрузить хотя бы один файл",
+        )
+
+    if session_id is None:
+        session_id = _create_session()
+    else:
+        _require_session(session_id)
+
+    # Сохраняем файлы в data
+    await _save_uploads_to_data(session_id, files)
+
+    # Автоматически запускаем Metashape
+    result_path = process_metashape(session_id)
+
+    if not os.path.isfile(result_path):
+        raise HTTPException(
+            status_code=500,
+            detail="Metashape не вернул результат",
+        )
+
+    return FileResponse(
+        result_path,
+        media_type="image/jpeg",
+        filename=os.path.basename(result_path),
+    )
+
+
+@app.post("/data/upload-and-process-ai")
+async def upload_and_process_ai(
+    file: UploadFile = File(..., description="Одно изображение для обработки AI"),
+    session_id: Optional[int] = Query(
+        default=None,
+        description="ID сессии (если не передан — создаётся новая)",
+    ),
+) -> FileResponse:
+    """
+    Загружает одно фото и автоматически обрабатывает его через AI (без Metashape).
+    Возвращает результат обработки AI.
+    """
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Файл {file.filename} не является изображением",
+        )
+
+    if session_id is None:
+        session_id = _create_session()
+    else:
+        _require_session(session_id)
+
+    paths = _get_paths(session_id)
+    ai_dir = paths["ai"]
+    os.makedirs(ai_dir, exist_ok=True)
+
+    # Сохраняем файл напрямую в папку ai
+    _, ext = os.path.splitext(file.filename or "")
+    if not ext:
+        ext = ".jpg"
+    filename = f"uploaded_ai{ext}"
+    input_path = os.path.join(ai_dir, filename)
+
+    content = await file.read()
+    with open(input_path, "wb") as f:
+        f.write(content)
+
+    # Обрабатываем через AI
+    base_name = os.path.basename(input_path)
+    name, ext = os.path.splitext(base_name)
+    output_path = os.path.join(ai_dir, f"{name}_processed{ext}")
+
+    try:
+        result_path = process_ai_image(input_path, output_path)
+    except FileNotFoundError as exc:
+        # Fallback: если модель не найдена, возвращаем оригинальное изображение
+        # Копируем оригинал как результат
+        shutil.copy2(input_path, output_path)
+        result_path = output_path
+        # Можно также вернуть предупреждение, но для простоты просто возвращаем оригинал
+    except Exception as exc:  # pylint: disable=broad-except
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка обработки AI: {str(exc)}",
+        ) from exc
 
     if not os.path.isfile(result_path):
         raise HTTPException(

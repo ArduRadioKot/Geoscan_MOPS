@@ -52,8 +52,18 @@ function App() {
       )
 
       if (!response.ok) {
-        const payload = await response.json().catch(() => null)
-        throw new Error(payload?.detail ?? 'AI не вернул изображение')
+        let errorMessage = 'AI не вернул изображение'
+        try {
+          const payload = await response.json()
+          errorMessage = payload?.detail ?? errorMessage
+        } catch {
+          if (response.status === 503) {
+            errorMessage = 'Модель AI недоступна. Убедитесь, что файл best.pt находится в папке backend/'
+          } else if (response.status === 500) {
+            errorMessage = 'Ошибка сервера при обработке изображения'
+          }
+        }
+        throw new Error(errorMessage)
       }
 
       const blob = await response.blob()
@@ -98,6 +108,89 @@ function App() {
     }
   }, [])
 
+  const handleUploadFolderForMetashape = useCallback(async (files) => {
+    setError(null)
+    setInfoMessage(null)
+    setLoadingMessage('Загружаем фотографии и обрабатываем Metashape…')
+    try {
+      const formData = new FormData()
+      Array.from(files).forEach((file) => {
+        formData.append('files', file)
+      })
+
+      const response = await fetch(`${API_BASE_URL}/data/upload-and-process-metashape`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.detail ?? 'Не удалось обработать фотографии')
+      }
+
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      setImageUrl((prev) => {
+        if (prev) {
+          URL.revokeObjectURL(prev)
+        }
+        return url
+      })
+
+      setInfoMessage('Metashape обработка завершена')
+    } catch (uploadError) {
+      setError(uploadError.message ?? 'Не удалось загрузить и обработать фотографии')
+    } finally {
+      setLoadingMessage(null)
+    }
+  }, [])
+
+  const handleUploadSingleForAI = useCallback(async (file) => {
+    setError(null)
+    setInfoMessage(null)
+    setLoadingMessage('Загружаем фото и обрабатываем AI…')
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch(`${API_BASE_URL}/data/upload-and-process-ai`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        let errorMessage = 'Не удалось обработать фото'
+        try {
+          const payload = await response.json()
+          errorMessage = payload?.detail ?? errorMessage
+        } catch {
+          // Если не удалось распарсить JSON, используем статус
+          if (response.status === 503) {
+            errorMessage = 'Модель AI недоступна. Убедитесь, что файл best.pt находится в папке backend/'
+          } else if (response.status === 500) {
+            errorMessage = 'Ошибка сервера при обработке изображения'
+          }
+        }
+        throw new Error(errorMessage)
+      }
+
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      setImageUrl((prev) => {
+        if (prev) {
+          URL.revokeObjectURL(prev)
+        }
+        return url
+      })
+
+      setInfoMessage('AI обработка завершена')
+    } catch (uploadError) {
+      setError(uploadError.message ?? 'Не удалось загрузить и обработать фото')
+    } finally {
+      setLoadingMessage(null)
+    }
+  }, [])
+
   const handleClearImage = () => {
     if (imageUrl) {
       URL.revokeObjectURL(imageUrl)
@@ -112,6 +205,8 @@ function App() {
       <Sidebar
         onFetchAiImage={handleFetchAiImage}
         onStartFlight={handleStartFlight}
+        onUploadFolderForMetashape={handleUploadFolderForMetashape}
+        onUploadSingleForAI={handleUploadSingleForAI}
         onClearImage={handleClearImage}
         isLoading={Boolean(loadingMessage)}
       />

@@ -1,9 +1,18 @@
 import './leftPanel.css'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-const Sidebar = ({ onFetchAiImage, onStartFlight, onClearImage, isLoading }) => {
+const Sidebar = ({ 
+  onFetchAiImage, 
+  onStartFlight, 
+  onUploadFolderForMetashape,
+  onUploadSingleForAI,
+  onClearImage, 
+  isLoading 
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const folderInputRef = useRef(null);
+  const singleFileInputRef = useRef(null);
 
   const toggleSidebar = () => {
     if (!isOpen) {
@@ -30,6 +39,38 @@ const Sidebar = ({ onFetchAiImage, onStartFlight, onClearImage, isLoading }) => 
   const handleRequestAiImage = async () => {
     if (typeof onFetchAiImage === 'function') {
       await onFetchAiImage();
+    }
+    closeSidebar();
+  };
+
+  const handleUploadFolderClick = () => {
+    folderInputRef.current?.click();
+  };
+
+  const handleFolderChange = async (event) => {
+    const files = event.target.files;
+    if (files && files.length > 0 && typeof onUploadFolderForMetashape === 'function') {
+      await onUploadFolderForMetashape(files);
+    }
+    // Сброс input для возможности повторной загрузки тех же файлов
+    if (folderInputRef.current) {
+      folderInputRef.current.value = '';
+    }
+    closeSidebar();
+  };
+
+  const handleUploadSingleClick = () => {
+    singleFileInputRef.current?.click();
+  };
+
+  const handleSingleFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (file && typeof onUploadSingleForAI === 'function') {
+      await onUploadSingleForAI(file);
+    }
+    // Сброс input для возможности повторной загрузки того же файла
+    if (singleFileInputRef.current) {
+      singleFileInputRef.current.value = '';
     }
     closeSidebar();
   };
@@ -101,6 +142,35 @@ const Sidebar = ({ onFetchAiImage, onStartFlight, onClearImage, isLoading }) => 
           </nav>
 
           <div className="image-upload">
+            <input
+              type="file"
+              ref={folderInputRef}
+              onChange={handleFolderChange}
+              accept="image/*"
+              multiple
+              style={{ display: 'none' }}
+            />
+            <input
+              type="file"
+              ref={singleFileInputRef}
+              onChange={handleSingleFileChange}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+            <button 
+              className="upload-btn upload-btn--folder" 
+              onClick={handleUploadFolderClick}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Обрабатываем…' : 'Загрузить папку (Metashape)'}
+            </button>
+            <button 
+              className="upload-btn upload-btn--single" 
+              onClick={handleUploadSingleClick}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Обрабатываем…' : 'Загрузить фото (AI)'}
+            </button>
             <button 
               className="upload-btn" 
               onClick={handleRequestAiImage}

@@ -234,6 +234,37 @@
   transform: translateY(0);
 }
 
+.upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.upload-btn:disabled:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.upload-btn--folder {
+  background: rgba(82, 217, 125, 0.2);
+  border-color: rgba(82, 217, 125, 0.3);
+}
+
+.upload-btn--folder:hover:not(:disabled) {
+  background: rgba(82, 217, 125, 0.3);
+  border-color: rgba(82, 217, 125, 0.4);
+}
+
+.upload-btn--single {
+  background: rgba(100, 181, 246, 0.2);
+  border-color: rgba(100, 181, 246, 0.3);
+  margin-top: 12px;
+}
+
+.upload-btn--single:hover:not(:disabled) {
+  background: rgba(100, 181, 246, 0.3);
+  border-color: rgba(100, 181, 246, 0.4);
+}
+
 .clear-btn {
   width: 100%;
   padding: 12px;

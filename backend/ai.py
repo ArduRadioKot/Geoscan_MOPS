@@ -2,10 +2,51 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 import os
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
-# Загружаем модель один раз при старте сервера
-model = YOLO("best.pt")
+# Модель загружается лениво при первом использовании
+_model: Optional[YOLO] = None
+
+
+def _find_model_path() -> str:
+    """
+    Ищет файл модели YOLO в нескольких возможных местах.
+    Возвращает путь к модели или выбрасывает FileNotFoundError.
+    """
+    # Сначала проверяем переменную окружения
+    env_path = os.getenv("YOLO_MODEL_PATH")
+    if env_path and os.path.isfile(env_path):
+        return env_path
+
+    # Затем ищем в текущей директории и в папке backend
+    possible_paths = [
+        "best.pt",
+        os.path.join(os.path.dirname(__file__), "best.pt"),
+        os.path.join(os.path.dirname(__file__), "..", "best.pt"),
+    ]
+
+    for path in possible_paths:
+        abs_path = os.path.abspath(path)
+        if os.path.isfile(abs_path):
+            return abs_path
+
+    # Если не нашли, выбрасываем ошибку с подсказкой
+    raise FileNotFoundError(
+        "Модель YOLO не найдена. Поместите файл best.pt в папку backend/ "
+        "или укажите путь через переменную окружения YOLO_MODEL_PATH"
+    )
+
+
+def _get_model() -> YOLO:
+    """
+    Ленивая загрузка модели YOLO.
+    Загружает модель только при первом вызове.
+    """
+    global _model
+    if _model is None:
+        model_path = _find_model_path()
+        _model = YOLO(model_path)
+    return _model
 
 # Цвета для разных классов (на случай, если будет несколько)
 colors = [
@@ -25,6 +66,7 @@ def _run_yolo(image_path: str) -> tuple:
     if image is None:
         raise ValueError(f"Не удалось прочитать изображение: {image_path}")
 
+    model = _get_model()
     results = model(image)[0]
 
     image = results.orig_img
@@ -51,10 +93,10 @@ def process_image(image_path: str) -> str:
     # Рисуем боксы
     for class_id, box in zip(classes, boxes):
         class_name = classes_names[int(class_id)]
-        color = colors[int(class_id) % len(colors)]
+        color = (4, 44, 252)
 
         x1, y1, x2, y2 = box
-        cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
+        cv2.rectangle(image, (x1, y1), (x2, y2), color, 10)
         cv2.putText(
             image,
             class_name,

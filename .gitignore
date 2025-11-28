@@ -1,6 +1,7 @@
-venv
+.venv
 .vscode
 .DS_Store
 node_modules
 __pycache__
 best.pt
+tmp
