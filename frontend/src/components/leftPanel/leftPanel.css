@@ -129,6 +129,8 @@
 .sidebar__nav {
   flex: 1;
   padding: 20px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar__menu {
@@ -203,15 +205,15 @@
 /* Стили для загрузки изображения */
 .image-upload {
   padding: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .upload-btn {
   width: 100%;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 12px;
   color: white;
   font-size: 16px;
@@ -224,13 +226,13 @@
   gap: 8px;
 }
 
-.upload-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+.upload-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.45);
   transform: translateY(-2px);
 }
 
-.upload-btn:active {
+.upload-btn:active:not(:disabled) {
   transform: translateY(0);
 }
 
@@ -241,28 +243,50 @@
 
 .upload-btn:disabled:hover {
   transform: none;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.upload-btn--folder {
-  background: rgba(82, 217, 125, 0.2);
-  border-color: rgba(82, 217, 125, 0.3);
-}
-
-.upload-btn--folder:hover:not(:disabled) {
-  background: rgba(82, 217, 125, 0.3);
-  border-color: rgba(82, 217, 125, 0.4);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .upload-btn--single {
-  background: rgba(100, 181, 246, 0.2);
-  border-color: rgba(100, 181, 246, 0.3);
   margin-top: 12px;
 }
 
-.upload-btn--single:hover:not(:disabled) {
-  background: rgba(100, 181, 246, 0.3);
-  border-color: rgba(100, 181, 246, 0.4);
+.download-btn {
+  width: 100%;
+  padding: 16px;
+  background: rgba(76, 175, 80, 0.2);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.download-btn:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: rgba(76, 175, 80, 0.4);
+  transform: translateY(-2px);
+}
+
+.download-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.download-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.download-btn:disabled:hover {
+  transform: none;
+  background: rgba(76, 175, 80, 0.2);
 }
 
 .clear-btn {
@@ -282,4 +306,41 @@
 .clear-btn:hover {
   background: rgba(255, 100, 100, 0.2);
   border-color: rgba(255, 100, 100, 0.3);
+}
+
+/* Стили для футера с GitHub */
+.sidebar__footer {
+  padding: 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: auto;
+}
+
+.sidebar__github-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.sidebar__github-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.sidebar__github-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar__github-text {
+  position: relative;
+  z-index: 1;
 }

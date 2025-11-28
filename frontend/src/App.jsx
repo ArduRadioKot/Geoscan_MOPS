@@ -200,6 +200,26 @@ function App() {
     setInfoMessage(null)
   }
 
+  const handleDownloadImage = useCallback(() => {
+    if (!imageUrl) {
+      setError('Нет изображения для скачивания')
+      return
+    }
+
+    try {
+      // Создаём временную ссылку для скачивания
+      const link = document.createElement('a')
+      link.href = imageUrl
+      link.download = `processed-image-${Date.now()}.jpg`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      setInfoMessage('Изображение скачано')
+    } catch (downloadError) {
+      setError('Не удалось скачать изображение')
+    }
+  }, [imageUrl])
+
   return (
     <div className={`app ${imageUrl ? 'app--fullscreen-view' : ''}`}>
       {!imageUrl && <Header name="MOPS" />}
@@ -215,6 +235,8 @@ function App() {
         onUploadFolderForMetashape={handleUploadFolderForMetashape}
         onUploadSingleForAI={handleUploadSingleForAI}
         onClearImage={handleClearImage}
+        onDownloadImage={handleDownloadImage}
+        hasImage={Boolean(imageUrl)}
         isLoading={Boolean(loadingMessage)}
       />
       <div className="app-status-panel">
@@ -224,7 +246,7 @@ function App() {
         {error && <span className="app-status app-status--error">{error}</span>}
       </div>
       <ImageViewer imageSrc={imageUrl} />
-    </div>
+   </div>
   )
 }
 
