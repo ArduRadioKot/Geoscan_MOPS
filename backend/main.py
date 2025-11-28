@@ -202,6 +202,46 @@ def process_metashape(session_id: int) -> str:
         ) from exc
 
 
+def process_metashape_and_ai(session_id: int) -> str:
+    """
+    Запускает обработку через Metashape, затем автоматически обрабатывает результат через AI.
+    Возвращает путь к обработанному AI изображению.
+    """
+    # Сначала запускаем Metashape
+    metashape_result = process_metashape(session_id)
+    
+    # Проверяем, что результат Metashape создан
+    if not os.path.isfile(metashape_result):
+        raise HTTPException(
+            status_code=500,
+            detail="Metashape не вернул результат",
+        )
+    
+    # Теперь обрабатываем результат Metashape через AI
+    paths = _get_paths(session_id)
+    ai_dir = paths["ai"]
+    os.makedirs(ai_dir, exist_ok=True)
+    
+    # Создаём путь для AI результата
+    base_name = os.path.basename(metashape_result)
+    name, ext = os.path.splitext(base_name)
+    ai_output_path = os.path.join(ai_dir, f"{name}_ai{ext}")
+    
+    try:
+        # Обрабатываем через AI
+        ai_result = process_ai_image(metashape_result, ai_output_path)
+        return ai_result
+    except FileNotFoundError as exc:
+        # Если модель AI не найдена, возвращаем оригинальный результат Metashape
+        shutil.copy2(metashape_result, ai_output_path)
+        return ai_output_path
+    except Exception as exc:  # pylint: disable=broad-except
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка обработки AI: {str(exc)}",
+        ) from exc
+
+
 # ============================= AI: ПРОЦЕСС =============================
 
 
@@ -343,20 +383,21 @@ def run_metashape_endpoint(
     session_id: int = Query(..., description="ID сессии tmp{i}"),
 ) -> FileResponse:
     """
-    Запуск proccess_metashape:
+    Запуск обработки Metashape с автоматической AI обработкой:
     - проверяем, что есть сессия и картинки в data;
-    - заполняем папку metashape;
-    - возвращаем один результирующий файл.
+    - запускаем Metashape;
+    - автоматически обрабатываем результат через AI;
+    - возвращаем результат AI обработки.
     """
     _require_session(session_id)
     _require_data_not_empty(session_id)
 
-    result_path = process_metashape(session_id)
+    result_path = process_metashape_and_ai(session_id)
 
     if not os.path.isfile(result_path):
         raise HTTPException(
             status_code=500,
-            detail="Metashape не вернул результат",
+            detail="Обработка не вернула результат",
         )
 
     return FileResponse(
@@ -403,8 +444,9 @@ async def upload_and_process_metashape(
     ),
 ) -> FileResponse:
     """
-    Загружает папку с фотографиями и автоматически запускает обработку Metashape.
-    Возвращает результат обработки.
+    Загружает папку с фотографиями, запускает обработку Metashape,
+    затем автоматически обрабатывает результат через AI.
+    Возвращает результат AI обработки.
     """
     if not files:
         raise HTTPException(
@@ -420,13 +462,13 @@ async def upload_and_process_metashape(
     # Сохраняем файлы в data
     await _save_uploads_to_data(session_id, files)
 
-    # Автоматически запускаем Metashape
-    result_path = process_metashape(session_id)
+    # Запускаем Metashape, затем автоматически обрабатываем через AI
+    result_path = process_metashape_and_ai(session_id)
 
     if not os.path.isfile(result_path):
         raise HTTPException(
             status_code=500,
-            detail="Metashape не вернул результат",
+            detail="Обработка не вернула результат",
         )
 
     return FileResponse(
