@@ -1,4 +1,5 @@
-<img align='right' src='https://www.geoscan.ru/themes/geoscan/img/logo_w.svg' width='200'>
+<img align='right' src='https://www.geoscan.ru/themes/geoscan/img/logo_w.svg' width='150
+'>
 
 
 # МОПС
