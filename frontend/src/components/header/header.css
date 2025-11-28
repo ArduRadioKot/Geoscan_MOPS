@@ -17,6 +17,14 @@
   font-weight: lighter;
 }
 
+.dark-theme .header {
+  background: rgba(20, 20, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+  0 18px 35px rgba(0, 0, 0, 0.5),
+  inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 /* Добавляем жидкий градиентный оверлей */
 .header::before {
   content: '';
@@ -36,7 +44,11 @@
   background: rgba(255, 255, 255, 0.98);
   border-color: rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
+}
 
+.dark-theme .header:hover {
+  background: rgba(25, 25, 25, 0.98);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .header__content {
@@ -49,6 +61,12 @@
   z-index: 2;
 }
 
+.header__logo {
+  width: 200px;
+  height: 32px;
+  transition: opacity 0.3s ease;
+}
+
 .header__title {
   font-size: 32px;
   font-weight: 400;
@@ -56,6 +74,50 @@
   letter-spacing: -0.02em;
   transition: color var(--transition-base);
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  text-align: center;
+}
+
+.dark-theme .header__title {
+  color: #e0e0e0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.header__theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.header__theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(0, 0, 0, 0.15);
+  transform: scale(1.05);
+}
+
+.header__theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.dark-theme .header__theme-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e0e0e0;
+}
+
+.dark-theme .header__theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Стили для переключателя в стиле Liquid Glass */

@@ -13,6 +13,34 @@ function App() {
   const [loadingMessage, setLoadingMessage] = useState(null)
   const [infoMessage, setInfoMessage] = useState(null)
   const [error, setError] = useState(null)
+  
+  // Управление темой
+  const getInitialTheme = () => {
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      return savedTheme
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+
+  const [theme, setTheme] = useState(getInitialTheme)
+
+  useEffect(() => {
+    const root = document.documentElement
+    const body = document.body
+    if (theme === 'dark') {
+      root.classList.add('dark-theme')
+      body.classList.add('dark-theme')
+    } else {
+      root.classList.remove('dark-theme')
+      body.classList.remove('dark-theme')
+    }
+    localStorage.setItem('theme', theme)
+  }, [theme])
+
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light')
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -221,8 +249,8 @@ function App() {
   }, [imageUrl])
 
   return (
-    <div className={`app ${imageUrl ? 'app--fullscreen-view' : ''}`}>
-      {!imageUrl && <Header name="MOPS" />}
+    <div className={`app ${imageUrl ? 'app--fullscreen-view' : ''} ${theme === 'dark' ? 'dark-theme' : ''}`}>
+      {!imageUrl && <Header name="MOPS" theme={theme} onToggleTheme={toggleTheme} />}
       {loadingMessage && (
         <div className="loader-overlay">
           <Loader />
