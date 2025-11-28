@@ -14,10 +14,16 @@
 }
 
 .image-viewer--empty {
+  position: relative;
+  top: auto;
+  height: auto;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(0, 0, 0, 0.2);
   color: #fff;
   font-size: 1.2rem;
   letter-spacing: 0.02em;
   text-align: center;
+  padding: 60px 20px;
 }
 
 .image-viewer__container {

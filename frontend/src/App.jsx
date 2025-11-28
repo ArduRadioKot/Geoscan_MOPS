@@ -3,6 +3,7 @@ import './App.css'
 import Header from './components/header/header'
 import Sidebar from './components/leftPanel/leftPanel'
 import ImageViewer from './components/imageViewer/imageViewer'
+import Loader from './components/loader/Loader'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
@@ -200,8 +201,14 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <Header name="Name" />
+    <div className={`app ${imageUrl ? 'app--fullscreen-view' : ''}`}>
+      {!imageUrl && <Header name="MOPS" />}
+      {loadingMessage && (
+        <div className="loader-overlay">
+          <Loader />
+          <span className="loader-overlay__text">{loadingMessage}</span>
+        </div>
+      )}
       <Sidebar
         onFetchAiImage={handleFetchAiImage}
         onStartFlight={handleStartFlight}
@@ -211,7 +218,6 @@ function App() {
         isLoading={Boolean(loadingMessage)}
       />
       <div className="app-status-panel">
-        {loadingMessage && <span className="app-status">{loadingMessage}</span>}
         {infoMessage && (
           <span className="app-status app-status--info">{infoMessage}</span>
         )}
