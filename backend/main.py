@@ -161,10 +161,12 @@ def _require_data_not_empty(session_id: int) -> None:
 
 def process_metashape(session_id: int) -> str:
     """
-    Упрощённая версия proccess_metashape:
-    берём первое изображение из data и копируем в metashape с суффиксом _metashape.
-    Возвращаем путь до нового файла.
+    Запускает обработку фотографий через Metashape.
+    Использует фотографии из data/ и сохраняет ортомозаику в metashape/.
+    Возвращает путь к созданной ортомозаике.
     """
+    from metashape import process_metashape as run_metashape
+
     paths = _get_paths(session_id)
     data_dir = paths["data"]
     metashape_dir = paths["metashape"]
@@ -172,19 +174,32 @@ def process_metashape(session_id: int) -> str:
 
     images = _list_images(data_dir)
     if not images:
-        # На всякий случай, но по идее сюда не дойдём из-за _require_data_not_empty
         raise HTTPException(
             status_code=400,
             detail="В папке data нет изображений",
         )
 
-    src = images[0]
-    base_name = os.path.basename(src)
-    name, ext = os.path.splitext(base_name)
-    dst = os.path.join(metashape_dir, f"{name}_metashape{ext}")
+    # Путь для сохранения ортомозаики
+    output_path = os.path.join(metashape_dir, "orthomosaic.png")
+    project_path = os.path.join(metashape_dir, "project.psx")
 
-    shutil.copy2(src, dst)
-    return dst
+    try:
+        result_path = run_metashape(
+            photos_folder=data_dir,
+            output_path=output_path,
+            project_path=project_path,
+        )
+        return result_path
+    except ImportError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Metashape недоступен: {str(exc)}",
+        ) from exc
+    except Exception as exc:  # pylint: disable=broad-except
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка обработки Metashape: {str(exc)}",
+        ) from exc
 
 
 # ============================= AI: ПРОЦЕСС =============================
