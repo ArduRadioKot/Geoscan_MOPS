@@ -143,18 +143,18 @@ def process_ai_image(input_path: str, output_path: str) -> str:
     # Рисуем боксы
     for class_id, box in zip(classes, boxes):
         class_name = classes_names[int(class_id)]
-        color = colors[int(class_id) % len(colors)]
+        color = (4, 44, 252)
 
         x1, y1, x2, y2 = box
-        cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
+        cv2.rectangle(image, (x1, y1), (x2, y2), color, 10)
         cv2.putText(
             image,
             class_name,
             (x1, max(0, y1 - 10)),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
+            5,
             color,
-            1,
+            10,
         )
 
     cv2.imwrite(output_path, image)
